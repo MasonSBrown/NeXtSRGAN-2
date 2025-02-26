@@ -6,11 +6,20 @@ import glob
 import random
 import tensorflow as tf
 
-flags.DEFINE_string('hr_dataset_path', './data/KID_F/KID_F_800_sub',
+# flags.DEFINE_string('hr_dataset_path', './data/KID_F/KID_F_800_sub',
+#                     'path to high resolution dataset')
+# flags.DEFINE_string('lr_dataset_path', './data/KID_F/KID_F_800_sub_bicLRx4',
+#                     'path to low resolution dataset')
+# flags.DEFINE_string('output_path', './data/KID_F_sub_bin.tfrecord',
+#                     'path to output tfrecord')
+# flags.DEFINE_boolean('is_binary', True, 'whether save images as binary files'
+#                      ' or load them on the fly.')
+
+flags.DEFINE_string('hr_dataset_path', './data/DIV2K/DIV2K800_sub_HR',
                     'path to high resolution dataset')
-flags.DEFINE_string('lr_dataset_path', './data/KID_F/KID_F_800_sub_bicLRx4',
+flags.DEFINE_string('lr_dataset_path', './data/DIV2K/DIV2K800_sub_bicLRx4',
                     'path to low resolution dataset')
-flags.DEFINE_string('output_path', './data/KID_F_sub_bin.tfrecord',
+flags.DEFINE_string('output_path', './data/DIV2K_sub_bin.tfrecord',
                     'path to output tfrecord')
 flags.DEFINE_boolean('is_binary', True, 'whether save images as binary files'
                      ' or load them on the fly.')
@@ -53,9 +62,18 @@ def main(_):
 
     samples = []
     logging.info('Reading data list...')
-    for hr_img_path in glob.glob(os.path.join(hr_dataset_path, '*.jpg')):
-        img_name = os.path.basename(hr_img_path).replace('.jpg', '')
-        lr_img_path = os.path.join(lr_dataset_path, img_name + '.jpg')
+    for hr_img_path in glob.glob(os.path.join(hr_dataset_path, '*.png')):
+        img_name = os.path.basename(hr_img_path).replace('.png', '')
+        
+        # lr_img_path = os.path.join(lr_dataset_path, img_name + '.png')
+        ##*******************************************************************************************
+        ## Modify the following line to match the naming convention of the DIV2K dataset
+        base_name, suffix = img_name.split('_')
+        lr_img_name = f"{base_name}x4_{suffix}.png"
+        lr_img_path = os.path.normpath(os.path.join(lr_dataset_path, lr_img_name))
+
+
+
         samples.append((img_name, hr_img_path, lr_img_path))
     random.shuffle(samples)
 

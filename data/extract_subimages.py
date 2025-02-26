@@ -27,10 +27,14 @@ def main():
         })
         extract_single(opt)
     elif mode == 'pair':
-        GT_folder = './data/KID_F/KID_F_train_HR'
-        LR_folder = './data/KID_F/KID_F_train_LR_bicubic/X4'
-        save_GT_folder = './data/KID_F/KID_F_800_sub'
-        save_LR_folder = './data/KID_F/KID_F_800_sub_bicLRx4'
+        # GT_folder = './data/KID_F/KID_F_train_HR'
+        # LR_folder = './data/KID_F/KID_F_train_LR_bicubic/X4'
+        # save_GT_folder = './data/KID_F/KID_F_800_sub'
+        # save_LR_folder = './data/KID_F/KID_F_800_sub_bicLRx4'
+        GT_folder = './data/DIV2K/DIV2K_train_HR'
+        LR_folder = './data/DIV2K/DIV2K_train_LR_bicubic_X4'
+        save_GT_folder = './data/DIV2K/DIV2K800_sub_HR'
+        save_LR_folder = './data/DIV2K/DIV2K800_sub_bicLRx4'
         scale_ratio = 4
         crop_sz = 480
         step = 240

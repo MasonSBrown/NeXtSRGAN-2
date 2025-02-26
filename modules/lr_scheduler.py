@@ -2,11 +2,15 @@ import tensorflow as tf
 
 
 def MultiStepLR(initial_learning_rate, lr_steps, lr_rate, name='MultiStepLR'):
-    lr_steps_value = [initial_learning_rate]
-    for _ in range(len(lr_steps)):
-        lr_steps_value.append(lr_steps_value[-1] * lr_rate)
+    # Ensure learning rate and boundaries have proper types.
+    initial_lr = float(initial_learning_rate)
+    boundaries = [int(b) for b in lr_steps]
+    values = [initial_lr]
+    for _ in range(len(boundaries)):
+        values.append(values[-1] * lr_rate)
+    values = [float(v) for v in values]
     return tf.keras.optimizers.schedules.PiecewiseConstantDecay(
-        boundaries=lr_steps, values=lr_steps_value)
+        boundaries=boundaries, values=values)
 
 
 def CosineAnnealingLR_Restart(initial_learning_rate, t_period, lr_min):

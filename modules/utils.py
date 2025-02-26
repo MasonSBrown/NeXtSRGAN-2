@@ -33,9 +33,9 @@ def load_dataset(cfg, key, shuffle=True, buffer_size=10240):
     logging.info("load {} from {}".format(key, dataset_cfg['path']))
     dataset = load_tfrecord_dataset(
         tfrecord_name=dataset_cfg['path'],
-        batch_size=cfg['batch_size'],
-        gt_size=cfg['gt_size'],
-        scale=cfg['scale'],
+        batch_size=dataset_cfg['batch_size'],
+        gt_size=dataset_cfg['gt_size'],
+        scale=dataset_cfg['scale'],
         shuffle=shuffle,
         using_bin=dataset_cfg['using_bin'],
         using_flip=dataset_cfg['using_flip'],

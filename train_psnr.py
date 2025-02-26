@@ -23,19 +23,28 @@ def main(_):
 
     cfg = load_yaml(FLAGS.cfg_path)
 
-    model = RRDB_Model(cfg['input_size'], cfg['ch_size'], cfg['network_G'])
+    model = RRDB_Model(cfg['general']['input_size'], cfg['general']['ch_size'], cfg['network']['generator'])
     model.summary(line_length=80)
 
-    train_dataset = load_dataset(cfg, 'train_dataset', shuffle=True)
+    train_dataset = load_dataset({
+        'train': {
+            **cfg['dataset']['train'],
+            'batch_size': cfg['general']['batch_size'],
+            'gt_size': cfg['general']['gt_size'],
+            'scale': cfg['general']['scale']
+        }
+    }, 'train', shuffle=True)
 
-    learning_rate = MultiStepLR(cfg['lr'], cfg['lr_steps'], cfg['lr_rate'])
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate,
-                                         beta_1=cfg['adam_beta1_G'],
-                                         beta_2=cfg['adam_beta2_G'])
+    learning_rate = MultiStepLR(cfg['training']['learning_rate']['initial'],
+                                cfg['training']['learning_rate']['steps'],
+                                cfg['training']['learning_rate']['rate'])
+    optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate,
+                                                beta_1=cfg['training']['adam_beta']['beta1'],
+                                                beta_2=cfg['training']['adam_beta']['beta2'])
 
-    pixel_loss_fn = PixelLoss(criterion=cfg['pixel_criterion'])
+    pixel_loss_fn = PixelLoss(criterion=cfg['loss']['pixel']['criterion'])
 
-    checkpoint_dir = './checkpoints/' + cfg['sub_name']
+    checkpoint_dir = './checkpoints/' + cfg['general']['sub_name']
     checkpoint = tf.train.Checkpoint(step=tf.Variable(0, name='step'),
                                      optimizer=optimizer,
                                      model=model)
@@ -55,7 +64,7 @@ def main(_):
 
             losses = {}
             losses['reg'] = tf.reduce_sum(model.losses)
-            losses['pixel'] = cfg['w_pixel'] * pixel_loss_fn(hr, sr)
+            losses['pixel'] = cfg['loss']['pixel']['weight'] * pixel_loss_fn(hr, sr)
             total_loss = tf.add_n([l for l in losses.values()])
 
         grads = tape.gradient(total_loss, model.trainable_variables)
@@ -63,9 +72,9 @@ def main(_):
 
         return total_loss, losses
 
-    summary_writer = tf.summary.create_file_writer('./logs/' + cfg['sub_name'])
-    prog_bar = ProgressBar(cfg['niter'], checkpoint.step.numpy())
-    remain_steps = max(cfg['niter'] - checkpoint.step.numpy(), 0)
+    summary_writer = tf.summary.create_file_writer('./logs/' + cfg['general']['sub_name'])
+    prog_bar = ProgressBar(cfg['training']['niter'], checkpoint.step.numpy())
+    remain_steps = max(cfg['training']['niter'] - checkpoint.step.numpy(), 0)
 
     for lr, hr in train_dataset.take(remain_steps):
         checkpoint.step.assign_add(1)
@@ -82,7 +91,7 @@ def main(_):
                     tf.summary.scalar(f'loss/{k}', l, step=steps)
                 tf.summary.scalar('learning_rate', optimizer.lr(steps), step=steps)
 
-        if steps % cfg['save_steps'] == 0:
+        if steps % cfg['save']['steps'] == 0:
             manager.save()
             print(f"\n[*] save ckpt file at {manager.latest_checkpoint}")
 
